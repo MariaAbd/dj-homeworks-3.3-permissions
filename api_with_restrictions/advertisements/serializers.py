@@ -24,15 +24,22 @@ class AdvertisementSerializer(serializers.ModelSerializer):
     class Meta:
         model = Advertisement
         fields = ('id', 'title', 'description', 'creator',
-                  'status', 'created_at', )
-        read_only_fields = ['user', ]
+                  'status', 'created_at',)
+        read_only_fields = ['creator', ]
 
     def create(self, validated_data):
-        validated_data["creator"] = self.context["request"].user
+        validated_data['creator'] = self.context['request'].user
         return super().create(validated_data)
 
+    def update(self, instance, validated_data):
+        instance.title = validated_data.get('title', instance.title)
+        instance.description = validated_data.get('description', instance.description)
+        instance.status = validated_data.get('status', instance.status)
+        instance.save()
+        return instance
+
     def validate(self, data):
-        user = self.context["request"].user
+        user = self.context['request'].user
         adv_num = Advertisement.objects.filter(creator=user, status='OPEN').count()
         print(adv_num)
         if adv_num > 10:
